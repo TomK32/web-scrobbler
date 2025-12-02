@@ -1,6 +1,11 @@
 export {};
 
-Connector.playerSelector = '[data-testid="rail-recent_tracks"]';
+Connector.playerSelector = '[data-testid*="tracks"]';
+
+function nowPlayingElement() {
+	return document.querySelectorAll(Connector.playerSelector + ' li')?.values()
+		.find( (element) => { return element.textContent?.toLowerCase().includes('now playing') } );
+}
 
 Connector.isPlaying = () => {
 	const btn = document.querySelector('[data-testid="play_pause_button"]');
@@ -8,25 +13,15 @@ Connector.isPlaying = () => {
 };
 
 Connector.scrobblingDisallowedReason = () => {
-	const firstTrack = document.querySelector(
-		'[data-testid="rail-recent_tracks"] li:nth-child(2)',
-	);
-	const hasNowPlaying = firstTrack?.textContent
-		?.toLowerCase()
-		.includes('now playing');
-	return hasNowPlaying ? null : 'Other';
+	return nowPlayingElement() ? null : 'Other';
 };
 
 Connector.getArtistTrack = () => {
-	const firstTrack = document.querySelector(
-		'[data-testid="rail-recent_tracks"] li:nth-child(2)',
-	);
+	const element = nowPlayingElement();
 
-	if (!firstTrack?.textContent?.toLowerCase().includes('now playing')) {
-		return null;
-	}
+	if (!element) { return null; }
 
-	const cleanText = (firstTrack as HTMLElement).innerText
+	const cleanText = (element as HTMLElement).innerText
 		.replace(/(^\d\.|\nnow playing)/gi, '')
 		.trim();
 
@@ -34,17 +29,9 @@ Connector.getArtistTrack = () => {
 	const track = parts[0]?.trim();
 	const artist = parts[1]?.trim();
 
-	return artist && track ? { artist, track } : null;
+	return { artist, track };
 };
 
 Connector.getTrackArt = () => {
-	const firstTrack = document.querySelector(
-		'[data-testid="rail-recent_tracks"] li:nth-child(2)',
-	);
-
-	if (!firstTrack?.textContent?.toLowerCase().includes('now playing')) {
-		return null;
-	}
-
-	return firstTrack.querySelector('img')?.src || null;
+	return nowPlayingElement()?.querySelector('img')?.src;
 };
